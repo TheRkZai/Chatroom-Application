@@ -111,12 +111,16 @@ socket.on("NewUser",function(data){
 		msg_list.append( 
 		'<div class="msg-wrap"><div class="msg-content msg-system">'+data+'</div></div>'
 	);
+    var hei = msg_list[0].scrollHeight;
+    msg_list.scrollTop(hei);
 });
 socket.on("useLogout",function(data){
 	var msg_list = $(".msg-list");
 		msg_list.append( 
 		'<div class="msg-wrap"><div class="msg-content msg-system">'+data+'</div></div>'
 	);
+    var hei = msg_list[0].scrollHeight;
+    msg_list.scrollTop(hei);
 });
 
 socket.on("system",function(data){ 
@@ -124,6 +128,8 @@ socket.on("system",function(data){
 		msg_list.append( 
 		'<div class="msg-wrap"><div class="msg-content msg-welcome">'+data+'</div></div>'
 	);
+    var hei = msg_list[0].scrollHeight;
+    msg_list.scrollTop(hei);
 });
 // Get User List
 socket.on("user_list",function(userList){
@@ -139,7 +145,7 @@ socket.on("user_list",function(userList){
 function setMyInfo(){
     var oldName = $("#nickname span").html();
     var uname = $("#nickname-edit").val();
-    socket.emit("setInfo",oldName,uname,usex);
+    socket.emit("setInfo",oldName,uname);
 }
 
 function showContent(name,time,content){
@@ -163,6 +169,8 @@ socket.on("ReceivedPrivateMessage",function(source,content){
 		'<div class="msg-wrap"><div class="msg-content msg-system">'+
 		' '+source+' has sent you private message：'+content+'</div></div>'
 	);
+	var hei = msg_list[0].scrollHeight;
+	msg_list.scrollTop(hei);
 });
 socket.on("PrivateMessageSent",function(target,content){
 	var msg_list = $(".msg-list");
@@ -170,4 +178,6 @@ socket.on("PrivateMessageSent",function(target,content){
 		'<div class="msg-wrap"><div class="msg-content msg-system">'+
 		'You already send '+target+' the private message ：'+content+'</div></div>'
 	);
+    var hei = msg_list[0].scrollHeight;
+    msg_list.scrollTop(hei);
 })

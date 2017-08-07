@@ -145,7 +145,7 @@ server.on('connection',function(socket){
 
 
     socket.on("getChatList",function(userName){
-        Content.find({name: userName})
+        Content.find()
             .then(function(list){
                 if(list){
                     socket.emit('getChatListDone',list);
