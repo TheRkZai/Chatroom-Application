@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width,initial-scale=1" >
+<title>Chat Room Application</title>
+<link rel="stylesheet" type="text/css" href="/public/stylesheets/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="/public/stylesheets/chat.css">
+
+<!--[if lt IE9]>
+
+<![endif]-->
+
+<body>
+	<div class="tip">
+	<h4> Carnegie Mellon University Chat Room  <span>00:00:00</span></h4>
+	<h5> Tips: You can send private message to other users by clicking their nick names!</h5>
+	<h5> Shot Keys: Ctrl + Enter (Send message)</h5>
+	</div>
+	<div class="container">
+
+		<div class="row mt15">
+		<div class="col-sm-4">
+			<div class="col-sm-12">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+					<div class="row">
+					<div class="col-sm-8">
+					<button class="btn btn-info" type="button" onclick="wrapInfo()">
+						<span class="glyphicon glyphicon-user"></span>&nbsp; Personal Information
+						</button>
+					</div>
+					<div class="col-sm-4">
+					<div class="btn-group">
+						<button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
+						<span class="glyphicon glyphicon-cog"></span>&nbsp; Settings
+							<span class="caret"></span>
+						</button>
+						<ul class="dropdown-menu">
+							<li><a  onclick="changeInfo()">Edit Info.</a></li>
+							<li><a onclick="showChatMsgs()">Chat Log</a></li>
+							<li><a href="/logout">Logout</a></li>
+						</ul>
+					</div>
+					</div>
+					</div>
+				</div>
+					<div class="panel-body myInfo">
+							<h5 id="nickname">Username： <span>{{user.username}}</span></h5>
+					</div>
+				</div>
+			</div>
+
+		<div class="col-sm-12">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<span class="glyphicon glyphicon-pushpin"></span> &nbsp; Online users
+				</div>
+				<div class="panel-body list-body">
+					<table class="table table-hover user-list">
+					<!--	<tr>
+							<td>user1</td>
+						</tr> -->
+					</table>
+				</div>
+				<div class="panel-footer" id="list-count">
+
+				</div>
+			</div>
+		</div>
+		</div>
+
+		<!-- Chat message textarea-->
+			<div class="col-sm-8">
+				<div class="panel panel-default">
+					<div class="panel-heading">
+						<span class="glyphicon glyphicon-leaf"></span> &nbsp;Message
+					</div>
+					<div class="panel-body">
+						<div class="msg-list">
+						</div>
+					</div>
+				</div>
+
+
+				<div class="input-group input-group-lg">
+					<span class="input-group-btn dropup">
+						<button type="button"class="btn btn-info dropdown-toggle" data-toggle="dropdown" id="quick">Freq.Message
+						<span class="caret"></span>
+						</button>
+						<ul class="dropdown-menu quick-menu">
+							<li> 1. Hello!</li>
+							<li> 2. Thank you!</li>
+							<li> 3. Goodbye!</li>
+							<li> 4. Sorry! </li>
+						</ul>
+					</span>
+					<input type="text" class="form-control" id="msgIn" placeholder="Please Input Message" onkeydown="keySend(event)">
+					<span class="input-group-btn">
+					<button type="button"class="btn btn-primary " onclick="sendMyMessage()">
+						Send
+						<span class="glyphicon glyphicon-send"></span>
+						</button> 
+					</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal -->
+	<div class="modal fade" id="change-modal" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">
+						<span aria-hidden="true">&times;</span>
+						<span class="sr-only"></span>
+					</button>
+					<h4 class="modal-title" id="myModal">Please edit your personal information.</h4>
+				</div>
+				<div class="modal-body">
+					<div class="row">
+						<div class="col-sm-8">
+							<div class="alert alert-danger" role="alert" id="nickname-error" style="display:none" >
+							<span class="glyphicon glyphicon-remove"></span>Username has already exits!
+							</div>
+							<div class="input-group">
+								<span class="input-group-addon">Username</span>
+								<input type="text" id="nickname-edit" class="form-control" placeholder="Please input your username:">
+							</div>
+							<div class="input-group">
+								<span class="input-group-addon">sex</span>&nbsp;&nbsp;
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" onclick="setMyInfo()">Confirm</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Modal  chat lists-->
+	<div class="modal fade" id="chat-modal" tabindex="-1" role="dialog" aria-hidden="true">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal">
+						<span aria-hidden="true">&times;</span>
+						<span class="sr-only"></span>
+					</button>
+					<h4 class="modal-title" id="myModal">Your recently chat log.</h4>
+				</div>
+				<div class="modal-body">
+					<div class="row">
+							<table class="table table-hover chat-list">
+
+							</table>
+					</div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-primary" onclick="ensure()">Confirm</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<script type="text/javascript" src="/public/javascripts/jquery.min.js"></script>
+	<script type="text/javascript" src="/public/javascripts/bootstrap.min.js"></script>
+	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript" src="/public/javascripts/client.js"></script>
+</body>
+</html>
