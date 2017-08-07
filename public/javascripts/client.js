@@ -34,10 +34,11 @@ $(function(){
         var time = date.getHours()+":"+date.getMinutes()+":"+date.getSeconds();
         $(".tip span").html(time);
     },1000);
+
 	$(".quick-menu").on("click",function(event){
-		/* Act on the event */
 		$("#msgIn").val($(event.target).text().substr(4));
 	});
+
 });
 
 // Clicking user to send private message
@@ -45,17 +46,11 @@ function toUser(user){
 	var target = "@"+user.innerHTML +": ";
 	document.getElementById("msgIn").value = target;
 }
-// Request Chat Log
-function showChatMsgs(){
-   $("#chat-modal").modal("show");
-   socket.emit("getChatList",$("#nickname span").html());
-}
+
 // Chat Log Received
-socket.on("getChatListDone",function(datas){
-	$(".chat-list").html("");
-	$(".chat-list").append("<tr class='row'><th class='col-sm-1'> ID </th><th class='col-sm-4'> Time </th><th class='col-sm-8'> Content </th></tr>");
-	for(var i=0;i<datas.length;i++){ 
-		$(".chat-list").append("<tr class='row'><td class='col-sm-1'>"+(i+1)+"</td><td class='col-sm-3'>"+datas[i].time+"</td><td class='col-sm-8'>"+datas[i].data+"</td></tr>");
+socket.on("getChatListDone",function(content){
+	for(var i= 0;i<content.length;i++){
+		showContent(content[i].name,content[i].time,content[i].data);
 	}
 });
 // Show Edit Info Window
@@ -108,6 +103,7 @@ socket.on("userChangeInfo",function(oldName,newName){
 socket.on("connect",function(){
 	var userName = $("#nickname span").html();
 	socket.send(userName);
+	socket.emit("getChatList",$("#nickname span").html());
 });
 
 socket.on("NewUser",function(data){
@@ -146,16 +142,19 @@ function setMyInfo(){
     socket.emit("setInfo",oldName,uname,usex);
 }
 
-
-socket.on("UserToGroup",function(name,time,content){
+function showContent(name,time,content){
 	var msg_list = $(".msg-list");
-	msg_list.append( 
+	msg_list.append(
 		'<div class="msg-wrap"><div class="msg-info"><span class="msg-name" title="Clicking the username can send a private message" onclick="toUser(this)">'+name+' </span>'+
 		'<span class="msg-time">'+time+' </span><span class="glyphicon glyphicon-bullhorn"></span></div>'+
 		'<div class="msg-content">'+content+'</div></div>'
 	);
-	var hei = msg_list.height();
+	var hei = msg_list[0].scrollHeight;
 	msg_list.scrollTop(hei);
+}
+
+socket.on("UserToGroup",function(name,time,content){
+	showContent(name,time,content);
 });
 
 socket.on("ReceivedPrivateMessage",function(source,content){
