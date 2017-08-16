@@ -5,6 +5,16 @@ var express = require('express');
 var router = express.Router();
 var User = require('../models/users');
 
+// respond data structure
+var responseData;
+router.use(function(req, res, next) {
+    responseData = {
+        code: 0,
+        message: ''
+    }
+    next();
+});
+
 router.get('/',function(req,res,next){
     res.redirect('/login');
 })
@@ -19,7 +29,6 @@ router.get('/register',function(req,res,next){
 
 router.get("/home",function(req,res){
     if(!req.session.user){
-        req.session.error = "Please login."
         res.redirect("/login");
     }
     res.render("home",{title:'Home',user:req.session.user});
@@ -34,24 +43,30 @@ router.get("/logout",function(req,res){
 router.post('/login',function(req,res,next){
     var username=req.body.username;
     var password=req.body.password;
-    if(username==' '){
-        req.session.error = 'Username cannot empty!';
-        res.sendStatus(404);
+    if(username==''){
+        responseData.code=1;
+        responseData.message='Username cannot empty!';
+        res.json(responseData);
+        return;
     }
     User.findOne({username:username})
         .then(function(user){
            if(!user){
-               req.session.error = "Invalid Username";
-               res.sendStatus(404);
+               responseData.code=2;
+               responseData.message='Invalid Username!';
+               res.json(responseData);
                return;
            } else if(user.password!=password){
-               req.session.error = "Wrong Password!";
-               res.sendStatus(404);
+               responseData.code=3;
+               responseData.message='Wrong Password!';
+               res.json(responseData);
                return;
            }else{
                req.session.user=user;
+               responseData.code=0;
+               responseData.message='';
                statusOnline(username);
-               res.sendStatus((200));
+               res.json(responseData);
                return;
             }
         });
@@ -63,8 +78,9 @@ router.post('/register',function(req,res,next){
     User.findOne({username: username})
         .then(function(user){
             if(user){
-                req.session.error = 'User Exists!';
-                res.sendStatus(500);
+                responseData.code=1;
+                responseData.message='User Exists!';
+                res.json(responseData);
                 return;
             }else{
                 new User({
@@ -72,7 +88,9 @@ router.post('/register',function(req,res,next){
                     password: password,
                     status: 'offline'
                 }).save();
-                res.sendStatus((200));
+                responseData.code=0;
+                responseData.message='';
+                res.json(responseData);
                 return;
             }
         });

@@ -18,13 +18,15 @@ $(function(){
                 url: '/register',
                 type: 'post',
                 data: data,
-                success: function(data,status){
-                    if(status == 'success'){
+                success: function(result){
+                    $('#colWarning').html(result.message);
+                    if (!result.code) {
                         location.href = 'login';
+                    }else{
+                        setTimeout(function() {
+                            location.href = 'register';
+                        }, 3000);
                     }
-                },
-                error: function(data,err){
-                    location.href = 'register';
                 }
             });
         }

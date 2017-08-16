@@ -13,14 +13,11 @@ function sendMyMessage(){
 	if(content == ""){ 
 		return;
 	}
-	console.log(content.substring(0,1));
-	console.log(content.indexOf(':') );
 	if(content.substring(0,1) == '@' && content.indexOf(':') != -1){
-		console.log(content);
 		var index = content.indexOf(':');
 		var target = content.substring(1,index);
 		var contentString = content.substr(index+1);
-		var source = $("#nickname span").html();
+		var source = $("#nickname").html();
 		socket.emit("PrivateMessage",source,target,contentString);
 	}else{
 		socket.emit("GroupMessage",content);
@@ -34,11 +31,6 @@ $(function(){
         var time = date.getHours()+":"+date.getMinutes()+":"+date.getSeconds();
         $(".tip span").html(time);
     },1000);
-
-	$(".quick-menu").on("click",function(event){
-		$("#msgIn").val($(event.target).text().substr(4));
-	});
-
 });
 
 // Clicking user to send private message
@@ -56,23 +48,21 @@ socket.on("getChatListDone",function(content){
 // Show Edit Info Window
 function changeInfo(){
 	$("#change-modal").modal("show");
-	$("#nickname-edit").val($("#nickname span").html());
+    $("#nickname-error").css("display","none");
+    $("nickname-edit").text("");
 }
 // Request Edit Information
 function setMyInfo(){
-	var oldName = $("#nickname span").html();
+	var oldName = $("#nickname").html();
 	var newName = $("#nickname-edit").val();
 	socket.emit("requestSetInfo",oldName,newName);
 }
 
-socket.on("nameExists",function(uname){
+socket.on("nameExists",function(){
 	$("#nickname-error").css("display","block");
-	var t = setTimeout(function(){ 
-		$("#nickname-error").css("display","none");
-	},2000);
 });
 // Edit Info Done
-socket.on("setInfoDone",function(oldName,newName,sex){
+socket.on("setInfoDone",function(oldName,newName){
 	$("#change-modal").modal("hide");
 	var msg_list = $(".msg-list");
 	if(oldName !== newName){
@@ -86,8 +76,7 @@ socket.on("setInfoDone",function(oldName,newName,sex){
 		'system@:  update info：success'+'</div></div>'
 	);
 	}
-	$("#nickname span").html(newName);
-	$("#sex span").html(sex);
+	$("#nickname").html(newName);
 });
 
 socket.on("userChangeInfo",function(oldName,newName){
@@ -101,9 +90,9 @@ socket.on("userChangeInfo",function(oldName,newName){
 });
 
 socket.on("connect",function(){
-	var userName = $("#nickname span").html();
+	var userName = $("#nickname").html();
 	socket.send(userName);
-	socket.emit("getChatList",$("#nickname span").html());
+	socket.emit("getChatList",$("#nickname").html());
 });
 
 socket.on("NewUser",function(data){
@@ -126,7 +115,7 @@ socket.on("useLogout",function(data){
 socket.on("system",function(data){ 
 	var msg_list = $(".msg-list");
 		msg_list.append( 
-		'<div class="msg-wrap"><div class="msg-content msg-welcome">'+data+'</div></div>'
+		'<div class="msg-wrap"><div class="msg-content msg-system">'+data+'</div></div>'
 	);
     var hei = msg_list[0].scrollHeight;
     msg_list.scrollTop(hei);
@@ -136,23 +125,17 @@ socket.on("user_list",function(userList){
 	$(".user-list").html("");
 
 	for(var i=0;i<userList.length;i++){
-		$(".user-list").append("<tr class='row'><td class='col-sm-1'><img style='width:10px; height:20px;'</td><td class='col-sm-11 user-name' title='Clicking the username can send a private message~' onclick='toUser(this)'>"+userList[i].username+"</td></tr>");
+		$(".user-list").append("<tr class='row'><td class='col-sm-1'><span class='glyphicon glyphicon-user'></span></td><td class='col-sm-11 user-name' title='Clicking the username can send a private message~' onclick='toUser(this)'>"+userList[i].username+"</td></tr>");
 	}
 	var listCount = $(".user-list").find("tr").length;
-	$("#list-count").text("Online User：" + listCount + "people");
+	$("#list-count").text("Online User：" + listCount + " people");
 });
-
-function setMyInfo(){
-    var oldName = $("#nickname span").html();
-    var uname = $("#nickname-edit").val();
-    socket.emit("setInfo",oldName,uname);
-}
 
 function showContent(name,time,content){
 	var msg_list = $(".msg-list");
 	msg_list.append(
 		'<div class="msg-wrap"><div class="msg-info"><span class="msg-name" title="Clicking the username can send a private message" onclick="toUser(this)">'+name+' </span>'+
-		'<span class="msg-time">'+time+' </span><span class="glyphicon glyphicon-bullhorn"></span></div>'+
+		'<span class="msg-time">'+time+' </span></div>'+
 		'<div class="msg-content">'+content+'</div></div>'
 	);
 	var hei = msg_list[0].scrollHeight;

@@ -13,14 +13,10 @@ $(function(){
             url:'/login',
             type:'post',
             data: data,
-            success: function(data,status){
-                if(status == 'success'){
+            success: function(result){
+                $('#colWarning').html(result.message);
+                if (!result.code) {
                     location.href = 'home';
-                }
-            },
-            error: function(data,status){
-                if(status == 'error'){
-                    location.href = 'login';
                 }
             }
         });

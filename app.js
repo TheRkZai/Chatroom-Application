@@ -117,7 +117,7 @@ server.on('connection',function(socket){
 
     //updateUserInfo
     function updateInfo(oldName,newName) {
-        User.update({username: oldName}, { $set: { username: newName }})
+        User.update({username: oldName}, { username: newName })
             .then(function(){
                 for(var n in clients_list){
                     if(clients_list[n].Socket === socket){
@@ -133,10 +133,10 @@ server.on('connection',function(socket){
     // request to reset information
     socket.on("requestSetInfo",function(oldName,newName){
 
-        User.findOne({name:newName})
+        User.findOne({username:newName})
             .then(function(sameName){
                 if(sameName){
-                    socket.emit("nameExists",newName);
+                    socket.emit("nameExists");
                 }else{
                     updateInfo(oldName,newName);
                 }
@@ -161,11 +161,13 @@ server.on('connection',function(socket){
             }
         }
         statusSetOffLine(Name);
-        updateUserList();
         socket.broadcast.emit('useLogout',"system@: "+client.name+" leave the chat room");
     });
     function statusSetOffLine(userName){
-        User.update({username:userName},{ $set:{ status: "offline"}},function(err){});
+        User.update({username:userName},{ status: "offline"}).
+            then(function(){
+            updateUserList();
+        })
     }
 
 });
