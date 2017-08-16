@@ -1,6 +1,7 @@
 /**
  * Created by RkZai on 2017/8/3.
  */
+// Users model
 var mongoose =require('mongoose');
 module.exports = new mongoose.Schema({
     username:{type:String,required:true},

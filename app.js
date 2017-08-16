@@ -1,6 +1,7 @@
 /**
  * Created by RkZai on 2017/8/3.
  */
+
 var express=require('express');
 var swig=require('swig');
 var bodyParser = require('body-parser');
@@ -14,15 +15,17 @@ var app=express()
     ,server=require('socket.io').listen(cs);
 cs.listen(8080);
 
-
+// List contains the sockets of different clients
 var clients_list= new Array();
 
+// Get the system time
 function getTime(){
     var date = new Date();
     var time = "["+date.getFullYear()+"/"+(date.getMonth()+1)+"/"+date.getDate()+" "+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()+"]";
     return time;
 }
 
+// Find all the online users and update the users display list
 function  updateUserList(){
     User.find({status: "online"})
         .then(function(onlineList){
@@ -47,17 +50,6 @@ app.use(session({
     }
 }));
 
-app.use(function(req,res,next){
-    res.locals.user = req.session.user;
-    var err = req.session.error;
-    delete req.session.error;
-    res.locals.message = "";
-    if(err){
-        res.locals.message = '<div class="alert alert-danger" style="margin-bottom:20px;color:red;">'+err+'</div>';
-    }
-    next();
-});
-
 //Setting routes
 app.use('/',require('./routers/main'));
 
@@ -81,12 +73,13 @@ server.on('connection',function(socket){
         name: ''
     };
 
+    // Broadcast to all the online users that new user come up
     socket.on("message",function(name){
         client.name = name;
         clients_list.push(client);
         socket.broadcast.emit("NewUser","System@: "+client.name+" has login.");
     });
-    // Showing Contents
+
     socket.emit("system","system@: "+client.name+" Welcome !");
 
     // Group Message
@@ -100,7 +93,7 @@ server.on('connection',function(socket){
         })//saving content
     });
 
-    // private message
+    // Private message
     socket.on("PrivateMessage",function(source,target,content){
         var targetSocket = "";
         // Get the target socket
@@ -115,7 +108,7 @@ server.on('connection',function(socket){
         }
     });
 
-    //updateUserInfo
+    // Update the person information
     function updateInfo(oldName,newName) {
         User.update({username: oldName}, { username: newName })
             .then(function(){
@@ -130,7 +123,7 @@ server.on('connection',function(socket){
                 updateUserList();
             })
     }
-    // request to reset information
+    // Receive the request to update the person information
     socket.on("requestSetInfo",function(oldName,newName){
 
         User.findOne({username:newName})
@@ -143,8 +136,8 @@ server.on('connection',function(socket){
             });
     });
 
-
-    socket.on("getChatList",function(userName){
+    // Get the chat log
+    socket.on("getChatList",function(){
         Content.find()
             .then(function(list){
                 if(list){
@@ -153,6 +146,7 @@ server.on('connection',function(socket){
             });
     });
 
+    // Users disconnect
     socket.on('disconnect',function(){
         var Name = "";
         for(var n in clients_list){
@@ -163,6 +157,8 @@ server.on('connection',function(socket){
         statusSetOffLine(Name);
         socket.broadcast.emit('useLogout',"system@: "+client.name+" leave the chat room");
     });
+
+    // Update the users to offline status
     function statusSetOffLine(userName){
         User.update({username:userName},{ status: "offline"}).
             then(function(){

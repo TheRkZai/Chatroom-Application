@@ -25,6 +25,7 @@ function sendMyMessage(){
 	$("#msgIn").val("");
 }
 
+// Get system time
 $(function(){
     var T = setInterval(function(){
         var date = new Date();
@@ -45,12 +46,14 @@ socket.on("getChatListDone",function(content){
 		showContent(content[i].name,content[i].time,content[i].data);
 	}
 });
+
 // Show Edit Info Window
 function changeInfo(){
 	$("#change-modal").modal("show");
     $("#nickname-error").css("display","none");
     $("nickname-edit").text("");
 }
+
 // Request Edit Information
 function setMyInfo(){
 	var oldName = $("#nickname").html();
@@ -58,9 +61,11 @@ function setMyInfo(){
 	socket.emit("requestSetInfo",oldName,newName);
 }
 
+// Name Exists
 socket.on("nameExists",function(){
 	$("#nickname-error").css("display","block");
 });
+
 // Edit Info Done
 socket.on("setInfoDone",function(oldName,newName){
 	$("#change-modal").modal("hide");
@@ -79,6 +84,7 @@ socket.on("setInfoDone",function(oldName,newName){
 	$("#nickname").html(newName);
 });
 
+// Broadcast to all users about the new update
 socket.on("userChangeInfo",function(oldName,newName){
 	var msg_list = $(".msg-list");
 	if(oldName !== newName){
@@ -89,12 +95,14 @@ socket.on("userChangeInfo",function(oldName,newName){
 	}
 });
 
+// Users connected
 socket.on("connect",function(){
 	var userName = $("#nickname").html();
 	socket.send(userName);
 	socket.emit("getChatList",$("#nickname").html());
 });
 
+// New users alert
 socket.on("NewUser",function(data){
 	var msg_list = $(".msg-list");
 		msg_list.append( 
@@ -103,6 +111,8 @@ socket.on("NewUser",function(data){
     var hei = msg_list[0].scrollHeight;
     msg_list.scrollTop(hei);
 });
+
+// Users logout
 socket.on("useLogout",function(data){
 	var msg_list = $(".msg-list");
 		msg_list.append( 
@@ -111,7 +121,7 @@ socket.on("useLogout",function(data){
     var hei = msg_list[0].scrollHeight;
     msg_list.scrollTop(hei);
 });
-
+// System message
 socket.on("system",function(data){ 
 	var msg_list = $(".msg-list");
 		msg_list.append( 
@@ -130,7 +140,7 @@ socket.on("user_list",function(userList){
 	var listCount = $(".user-list").find("tr").length;
 	$("#list-count").text("Online User：" + listCount + " people");
 });
-
+// Show content
 function showContent(name,time,content){
 	var msg_list = $(".msg-list");
 	msg_list.append(
@@ -142,10 +152,11 @@ function showContent(name,time,content){
 	msg_list.scrollTop(hei);
 }
 
+// Group message
 socket.on("UserToGroup",function(name,time,content){
 	showContent(name,time,content);
 });
-
+// Private message received
 socket.on("ReceivedPrivateMessage",function(source,content){
 	var msg_list = $(".msg-list");
 		msg_list.append( 
@@ -155,6 +166,7 @@ socket.on("ReceivedPrivateMessage",function(source,content){
 	var hei = msg_list[0].scrollHeight;
 	msg_list.scrollTop(hei);
 });
+// Private message sent
 socket.on("PrivateMessageSent",function(target,content){
 	var msg_list = $(".msg-list");
 		msg_list.append( 

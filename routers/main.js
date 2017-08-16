@@ -5,7 +5,7 @@ var express = require('express');
 var router = express.Router();
 var User = require('../models/users');
 
-// respond data structure
+// Respond data structure
 var responseData;
 router.use(function(req, res, next) {
     responseData = {
@@ -15,6 +15,7 @@ router.use(function(req, res, next) {
     next();
 });
 
+// Set routers
 router.get('/',function(req,res,next){
     res.redirect('/login');
 })
@@ -34,12 +35,13 @@ router.get("/home",function(req,res){
     res.render("home",{title:'Home',user:req.session.user});
 });
 
+// GET method to access logout page
 router.get("/logout",function(req,res){
     req.session.user = null;
-    req.session.error = null;
     res.redirect("/login");
 });
 
+// POST method to access login page
 router.post('/login',function(req,res,next){
     var username=req.body.username;
     var password=req.body.password;
@@ -72,6 +74,7 @@ router.post('/login',function(req,res,next){
         });
 });
 
+// POST method to access register page
 router.post('/register',function(req,res,next){
     var username=req.body.username;
     var password=req.body.password;
