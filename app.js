@@ -18,21 +18,6 @@ cs.listen(8080);
 // List contains the sockets of different clients
 var clients_list= new Array();
 
-// Get the system time
-function getTime(){
-    var date = new Date();
-    var time = "["+date.getFullYear()+"/"+(date.getMonth()+1)+"/"+date.getDate()+" "+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()+"]";
-    return time;
-}
-
-// Find all the online users and update the users display list
-function  updateUserList(){
-    User.find({status: "online"})
-        .then(function(onlineList){
-            server.emit('user_list',onlineList);
-        });
-}
-
 //Config the application model engine
 app.engine('html',swig.renderFile);
 app.set('views','./views');
@@ -40,14 +25,14 @@ app.set('view engine','html');
 
 //Static file
 app.use('/public',express.static(__dirname+'/public'));
+
+//parse middleware
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
+
 //Config Session
 app.use(session({
     secret: 'Session',
-    cookie:{
-        maxAge: 1000*60*600
-    }
 }));
 
 //Setting routes
@@ -63,6 +48,29 @@ mongoose.connect('mongodb://localhost:27017/chatDB',function(err){
     }
 });
 
+// Get the system time
+function getTime(){
+    var date = new Date();
+    var time = "["+date.getFullYear()+"/"+(date.getMonth()+1)+"/"+date.getDate()+" "+date.getHours()+":"+date.getMinutes()+":"+date.getSeconds()+"]";
+    return time;
+}
+
+// Find all the online users and update the users display list
+function  updateUserList(){
+    User.find({status: "online"})
+        .then(function(onlineList){
+            server.emit('user_list',onlineList);
+        });
+}
+
+// Update the users to offline status
+function statusSetOffLine(userName){
+    User.update({username:userName},{ status: "offline"}).
+    then(function(){
+        updateUserList();
+    })
+}
+
 // server listening
 server.on('connection',function(socket){
     // Emit the user list
@@ -77,10 +85,10 @@ server.on('connection',function(socket){
     socket.on("message",function(name){
         client.name = name;
         clients_list.push(client);
-        socket.broadcast.emit("NewUser","System@: "+client.name+" has login.");
+        socket.broadcast.emit("NewUser",client.name);
+        socket.emit("system",client.name);
     });
 
-    socket.emit("system","system@: "+client.name+" Welcome !");
 
     // Group Message
     socket.on('GroupMessage',function(content){
@@ -106,6 +114,43 @@ server.on('connection',function(socket){
             socket.emit("PrivateMessageSent",target,content);
             targetSocket.emit("ReceivedPrivateMessage",source,content);
         }
+        else
+            socket.emit("PrivateMessageFailed");
+    });
+
+    // Receive the request to update the person information
+    socket.on("requestSetInfo",function(oldName,newName){
+        User.findOne({username:newName})
+            .then(function(sameName){
+                if(sameName){
+                    socket.emit("nameExists");
+                }else{
+                    updateInfo(oldName,newName);
+                }
+            });
+    });
+
+    // Get the chat log
+    socket.on("getChatList",function(){
+        Content.find().limit(10)
+            .then(function(list){
+                if(list){
+                    socket.emit('getChatListDone',list);
+                }
+            });
+    });
+
+    // Users disconnect
+    socket.on('disconnect',function(){
+        var Name = "";
+        for(var n in clients_list){
+            if(clients_list[n].Socket === socket){
+                Name = clients_list[n].name;
+                clients_list.splice(n,1);
+            }
+        }
+        statusSetOffLine(Name);
+        socket.broadcast.emit('useLogout',client.name);
     });
 
     // Update the person information
@@ -123,47 +168,4 @@ server.on('connection',function(socket){
                 updateUserList();
             })
     }
-    // Receive the request to update the person information
-    socket.on("requestSetInfo",function(oldName,newName){
-
-        User.findOne({username:newName})
-            .then(function(sameName){
-                if(sameName){
-                    socket.emit("nameExists");
-                }else{
-                    updateInfo(oldName,newName);
-                }
-            });
-    });
-
-    // Get the chat log
-    socket.on("getChatList",function(){
-        Content.find()
-            .then(function(list){
-                if(list){
-                    socket.emit('getChatListDone',list);
-                }
-            });
-    });
-
-    // Users disconnect
-    socket.on('disconnect',function(){
-        var Name = "";
-        for(var n in clients_list){
-            if(clients_list[n].Socket === socket){
-                Name = clients_list[n].name;
-            }
-        }
-        statusSetOffLine(Name);
-        socket.broadcast.emit('useLogout',"system@: "+client.name+" leave the chat room");
-    });
-
-    // Update the users to offline status
-    function statusSetOffLine(userName){
-        User.update({username:userName},{ status: "offline"}).
-            then(function(){
-            updateUserList();
-        })
-    }
-
 });

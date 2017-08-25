@@ -20,14 +20,17 @@ router.get('/',function(req,res,next){
     res.redirect('/login');
 })
 
+// GET method access login page
 router.get('/login',function(req,res,next){
     res.render("login",{title:'User Login'});
 })
 
+// GET method access register page
 router.get('/register',function(req,res,next){
     res.render("register",{title:'User Register'});
 })
 
+// GET method access home page
 router.get("/home",function(req,res){
     if(!req.session.user){
         res.redirect("/login");
@@ -42,6 +45,7 @@ router.get("/logout",function(req,res){
 });
 
 // POST method to access login page
+// code 0 means success,others means fail
 router.post('/login',function(req,res,next){
     var username=req.body.username;
     var password=req.body.password;
@@ -99,7 +103,7 @@ router.post('/register',function(req,res,next){
         });
 });
 
-
+// Save the online status in database
 function statusOnline(Name){
     User.update({username:Name},{ $set:{ status: "online"}},function(err, result) {});
 }
