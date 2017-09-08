@@ -1,0 +1,13 @@
+/**
+ * Created by RkZai on 2017/8/3.
+ */
+body {padding: 0 50px 50px 50px;font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;}
+a {color: #00B7FF;}
+.mt15{ margin-top: 15px;}
+.list-body{position: relative;height: 320px;overflow-y: scroll;}
+.user-list td:hover{cursor: pointer;}
+.msg-list{position: relative;height: 300px;overflow-y: scroll;}
+.msg-name{cursor: pointer;}
+.msg-content{padding: 5px;text-indent: 2em;width: 90%;word-wrap:break-word;word-break:break-all;line-height: 25px;}
+.msg-system{min-width: 400px; border: 1px dashed blue;border-radius: 15px;color: cornflowerblue;margin-top: 5px;}
+.footer{text-align: center; font-family: Candara;font-size: medium;font-weight: 500}
